@@ -1,32 +1,52 @@
+import re
 
 class Node(object):
     def __init__(self, parent):
+        self.type = 'Node'
         self.parent = parent
         self.level = -1
+        self.paragraphs = []
 
-    def section_level(self):
-        return self.parent.section_level()
+    def section_lower(self, level):
+        if self.level <= 0:
+            return self
+        return self.parent.section_up(level)
 
 
 class Document(Node):
     def __init__(self):
-        super.__init__(parent = None)
+        super().__init__(parent = None)
+        self.type = 'Document'
         self.level = 0
+        self.sections = []
+        self.properties = []
 
-    def section_level(self):
-        return self.level
+    def deep(self):
+        for sec in self.sections:
+            sec.deep()
 
 
 class Section(Node):
     def __init__(self, parent, level, content):
-        super.__init__(parent)
+        super().__init__(parent)
+        self.type = "Section"
         self.level = level
         self.heading = content
-        self.sub_sections = []
+        self.sections = []
         self.properties = []
 
-    def section_level(self):
-        return self.level
+    def section_lower(self, level):
+        if self.level <= level:
+            return self
+
+    def deep(self):
+        s = " " * self.level
+        print("%s-%s" % (s, self.heading))
+        for p in self.paragraphs:
+            print(s + p.text())
+        #
+        for sec in self.sections:
+            sec.deep()
 
 
 class Property(Node):
@@ -34,7 +54,17 @@ class Property(Node):
 
 
 class Paragraph(Node):
-    pass
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.type = "Paragraph"
+        self.lines = []
+
+    def text(self):
+        r = re.compile(r"\s+")
+        lines = []
+        for line in self.lines:
+            lines.append(r.sub(line, " "))
+        return " ".join(lines)
 
 
 def parse_line(line):
@@ -43,16 +73,16 @@ def parse_line(line):
     indent = len(rstripped) - len(stripped)
     if len(stripped) == 0:
         # blank line
-        return ('blank', stripped)
+        return ('blank', 0, stripped)
     else:
         first = stripped[0]
         rep = len(stripped) - len(stripped.lstrip(first))
         if first == '#':
             # heading
-            return ('heading', rep, stripped)
+            return ('heading', rep, stripped[rep:].strip())
         elif first == '.':
             # property
-            return ('property', rep, stripped)
+            return ('property', rep, stripped[rep:].strip())
         elif first == '-':
             # list item
             return ('list', rep, stripped)
@@ -68,16 +98,30 @@ def parse_document(f):
         (kind, level, content) = parse_line(line)
         if kind == 'heading':
             # leave deeper levels
-            while context.section_level() >= level:
-                context = context.parent
+            context = context.section_lower(level)
+            # create new section
             sec = Section(
                 parent=context,
                 level=level,
                 content=content,
             )
-            context.sub_sections.append(sec)
-            context = sub
-
+            context.sections.append(sec)
+            # enter new section:
+            context = sec
+        elif kind == "text":
+            if context.type != "Paragraph":
+                # not in Paragraph context, start new paragraph
+                p = Paragraph(
+                    parent = context,
+                )
+                context.paragraphs.append(p)
+                context = p
+            # add new line to paragraph
+            context.lines.append(content)
+        elif kind == "blank":
+            # blank lines close paragraphs, but do nothing else, yet
+            if context.type == "Paragraph":
+                context = context.parent
     return doc
 
 
@@ -85,3 +129,4 @@ def parse_document(f):
 with open("data/am_fluss/ufer.dm", "rt") as f:
     doc = parse_document(f)
 
+doc.deep()
