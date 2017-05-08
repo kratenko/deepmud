@@ -2,7 +2,7 @@ from collections import OrderedDict
 import os
 
 class Exit(object):
-    commons = {
+    COMMONS = {
         "norden": ("nord", "n"),
         "nordosten": ("nordost", "no"),
         "osten": ("ost", "o"),
@@ -21,6 +21,8 @@ class Exit(object):
         self.common_aliases()
 
     def common_aliases(self):
+        if self.name in self.COMMONS:
+            self.aliases.extend(COMMONS[name])
         if self.name == "norden":
             self.aliases.extend("nord", "n")
         elif self.name ==
