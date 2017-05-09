@@ -4,6 +4,7 @@ eine kleine Nische in einer Flussbiegung, umgeben von Büschen und Bäumen,
 sodass man vom Umland abgeschieden ist. Der Boden ist bedeckt mit saftigem
 grünen Gras.
 
+
 Ein kleiner Trampelpfad führt Richtung Osten durch das Gestrüpp.
 
 .sinn geräusch
@@ -27,3 +28,7 @@ wenig.
 
 ..beobachter
 ${Der()} schließt die Augen und lauscht dem Fluss.
+
+# :Ausgänge
+## süden: /start
+## osten: whatever

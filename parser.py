@@ -53,7 +53,12 @@ class Section(Node):
 
 
 class Property(Node):
-    pass
+    def __init__(self, parent, level, content):
+        super().__init__(parent)
+        self.type = "Property"
+        self.level = level
+        self.heading = content
+        self.properties = []
 
 
 class Paragraph(Node):
@@ -97,37 +102,60 @@ def parse_line(line):
 def parse_document(text):
     doc = Document()
     context = doc
-    secs = []
+    # current path in section tree:
+    secs = [doc]
+    # current path in property tree of current section:
     props = []
+    #
+    par = None
 
     for line in text.split("\n"):
         (kind, level, content) = parse_line(line)
         if kind == 'heading':
             # leave deeper levels
-            context = context.section_lower(level)
-            # create new section
+            while secs[-1].level >= level:
+                secs.pop()
+            parent = secs[-1]
             sec = Section(
-                parent=context,
+                parent=parent,
                 level=level,
                 content=content,
             )
-            context.sections.append(sec)
-            # enter new section:
-            context = sec
-        elif kind == "text":
-            if context.type != "Paragraph":
-                # not in Paragraph context, start new paragraph
-                p = Paragraph(
-                    parent = context,
+            props = []
+            parent.sections.append(sec)
+            secs.append(sec)
+            par = None
+        elif kind == 'property':
+            while props and props[-1].level >= level:
+                props.pop()
+            if props:
+                parent = props[-1]
+            else:
+                parent = secs[-1]
+            prop = Property(
+                parent=parent,
+                level=level,
+                content=content,
+            )
+            parent.properties.append(prop)
+            props.append(prop)
+            par = None
+        elif kind == 'text':
+            if par is None:
+                # first text line of paragraph, create new one:
+                if props:
+                    parent = props[-1]
+                else:
+                    parent = secs[-1]
+                par = Paragraph(
+                    parent=parent,
                 )
-                context.paragraphs.append(p)
-                context = p
-            # add new line to paragraph
-            context.lines.append(content)
-        elif kind == "blank":
-            # blank lines close paragraphs, but do nothing else, yet
-            if context.type == "Paragraph":
-                context = context.parent
+                parent.paragraphs.append(par)
+            # append text line to paragraph
+            par.lines.append(content)
+        elif kind == 'blank':
+            # blank lines closes paragraph
+            par = None
     return doc
 
 
