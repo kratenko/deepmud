@@ -35,6 +35,9 @@ class Section(Node):
         self.sections = []
         self.properties = []
 
+    def text(self):
+        return "\n".join([p.text() for p in self.paragraphs])
+
     def section_lower(self, level):
         if self.level <= level:
             return self
@@ -63,7 +66,7 @@ class Paragraph(Node):
         r = re.compile(r"\s+")
         lines = []
         for line in self.lines:
-            lines.append(r.sub(line, " "))
+            lines.append(r.sub(line, " ").strip())
         return " ".join(lines)
 
 
@@ -91,10 +94,13 @@ def parse_line(line):
             return ('text', rep, stripped)
 
 
-def parse_document(f):
+def parse_document(text):
     doc = Document()
     context = doc
-    for line in f.readlines():
+    secs = []
+    props = []
+
+    for line in text.split("\n"):
         (kind, level, content) = parse_line(line)
         if kind == 'heading':
             # leave deeper levels
@@ -125,8 +131,6 @@ def parse_document(f):
     return doc
 
 
-
-with open("data/am_fluss/ufer.dm", "rt") as f:
-    doc = parse_document(f)
-
-doc.deep()
+def load_document(path):
+    with open(path, "rt") as f:
+        return parse_document(f.read())

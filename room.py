@@ -1,36 +1,18 @@
 from collections import OrderedDict
 import os
 
+import parser
+
 class Exit(object):
-    COMMONS = {
-        "norden": ("nord", "n"),
-        "nordosten": ("nordost", "no"),
-        "osten": ("ost", "o"),
-        "südosten": ("südost", "so", "suedosten", "suedost"),
-        "süden": ("süd", "s", "sued"),
-        "südwesten": ("südwest", "sw", "suedwesten", "suedwest"),
-        "westen": ("west", "w"),
-        "nordwesten": ("nordwest", "nw"),
-        "hoch": ("rauf", "hinhauf", "herauf", "aufwaerts", "aufwärts", "h"),
-        "runter": ("hinunter", "herunter", "herab", "abwärts", "abwaerts", "r"),
-    }
     def __init__(self, name, path):
         self.name = name
         self.path = path
-        self.aliases = [name]
-        self.common_aliases()
 
-    def common_aliases(self):
-        if self.name in self.COMMONS:
-            self.aliases.extend(COMMONS[name])
-        if self.name == "norden":
-            self.aliases.extend("nord", "n")
-        elif self.name ==
 
 class Room(object):
     def __init__(self, path):
         self.path = path
-        self.exits = []
+        self.exits = OrderedDict()
         self.senses = []
         self.name = None
         self.long = None
@@ -43,6 +25,16 @@ class Room(object):
 
     def get_short(self):
         return self.short
+
+    def add_exit(self, name, path):
+        self.exits[name] = Exit(name, path)
+
+    def exit_list(self):
+        if self.exits:
+            l = ", ".join([ex for ex in self.exits.keys()])
+            return "    weiter: " + l
+        else:
+            return None
 
     def __repr__(self):
         return "<Room:\"{}\">".format(self.path)
@@ -58,11 +50,14 @@ class RoomTable(object):
         else:
             return self.load_room(path)
 
+    def insert_room(self, room):
+        self.rooms[room.path] = room
+
     def load_room(self, path):
         if path == '/void':
             room = self.create_void()
         else:
-            raise Exception("Not yet.")
+            room = self.load_dm(path)
         self.rooms[path] = room
         return room
 
@@ -75,20 +70,11 @@ class RoomTable(object):
         return void
 
     def load_dm(self, path):
-        p = os.path.join("data", path) + '.dm'
-        with open(p, "rt") as f:
-            s = f.read()
-
-
-
-class Viewer(object):
-    def __init__(self):
-        self.environment = None
-
-    def action(self, cmd):
-        pass
-
-
-rooms = RoomTable()
-void = rooms.get_room('/void')
-print(void)
+        r = Room(path)
+        p = "data" + path + '.dm'
+        #p = os.path.join("data", path) + '.dm'
+        # print("P", p)
+        doc = parser.load_document(p)
+        s1 = doc.sections[0]
+        r.long = s1.text()
+        return r

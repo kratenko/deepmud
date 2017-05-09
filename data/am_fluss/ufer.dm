@@ -22,7 +22,8 @@ Der Fluss macht hier eine Biegung und trennt diesen Ort vom Umfeld ab.
 Das Wasser plätschert lustig vor sich hin.
 
 .sinn geräusch
-Ja, vom Fluss kommt das Plätschern. Du geniest das Geräusch und entspannst ein wenig.
+Ja, vom Fluss kommt das Plätschern. Du geniest das Geräusch und entspannst ein
+wenig.
 
 ..beobachter
 ${Der()} schließt die Augen und lauscht dem Fluss.
