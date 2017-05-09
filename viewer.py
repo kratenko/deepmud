@@ -30,6 +30,8 @@ class Viewer(object):
         self.rooms = rooms
 
     def out(self, text):
+        if text is None:
+            return
         lines = []
         for parts in text.split("\n"):
             lines.extend(textwrap.wrap(parts, 79))
@@ -67,7 +69,7 @@ Wenn du keine Lust mehr hast, kommst du mit "ende" hier raus.
         if cmd == "":
             pass
         elif cmd == 'b' or cmd == 'betrachte':
-            self.action_look(line)
+            self.action_look(parm_line)
         elif cmd in ['ende', 'exit', 'quit']:
             self.out("Bis bald!")
             self.looping = False
@@ -78,10 +80,15 @@ Wenn du keine Lust mehr hast, kommst du mit "ende" hier raus.
 
     def action_look(self, line):
         if self.environment:
-            self.out(self.environment.long)
-            el = self.environment.exit_list()
-            if el:
-                self.out(el)
+            if line:
+                ob = self.environment.find(line)
+                if ob:
+                    self.out(ob.long)
+                else:
+                    self.out(line + " nicht gefunden.")
+            else:
+                self.out(self.environment.long)
+                self.out(self.environment.exit_list())
         else:
             self.out("Whoops! Du bist nirgends. Nix zu sehen...")
 
@@ -98,6 +105,12 @@ Wenn du keine Lust mehr hast, kommst du mit "ende" hier raus.
             self.out("Du bist nirgends, da kannst du auch nicht weg.")
 
 rooms = room.RoomTable()
+r1 = rooms.get_room("/am_fluss/ufer")
+viewer = Viewer(rooms=rooms)
+viewer.environment = r1
+viewer.loop()
+exit()
+
 starting_room = room.Room("/start")
 starting_room.short = "Am Anfang"
 starting_room.long = "Du bist dort, wo alles anfängt."
@@ -110,7 +123,3 @@ room2.short = "Daneben"
 room2.long = "Hier gehts weiter"
 room2.add_exit("westen", "/start")
 rooms.insert_room(room2)
-
-viewer = Viewer(rooms=rooms)
-viewer.environment = starting_room
-viewer.loop()

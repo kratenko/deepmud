@@ -4,7 +4,6 @@ eine kleine Nische in einer Flussbiegung, umgeben von Büschen und Bäumen,
 sodass man vom Umland abgeschieden ist. Der Boden ist bedeckt mit saftigem
 grünen Gras.
 
-
 Ein kleiner Trampelpfad führt Richtung Osten durch das Gestrüpp.
 
 .sinn geräusch
@@ -22,6 +21,9 @@ Wasserpräsenz durchbricht hier die im Umfeld so starke Erde.
 Der Fluss macht hier eine Biegung und trennt diesen Ort vom Umfeld ab.
 Das Wasser plätschert lustig vor sich hin.
 
+.alias
+wasser, bach, weiher
+
 .sinn geräusch
 Ja, vom Fluss kommt das Plätschern. Du geniest das Geräusch und entspannst ein
 wenig.
@@ -29,6 +31,6 @@ wenig.
 ..beobachter
 ${Der()} schließt die Augen und lauscht dem Fluss.
 
-# :Ausgänge
-## süden: /start
-## osten: whatever
+# :exits
+## osten: /am_fluss/pfad
+## westen: /am_fluss/im_wasser

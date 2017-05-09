@@ -52,9 +52,9 @@ class Section(Node):
             sec.deep()
 
 
-class Property(Node):
+class Property(Section):
     def __init__(self, parent, level, content):
-        super().__init__(parent)
+        super().__init__(parent, level, content)
         self.type = "Property"
         self.level = level
         self.heading = content

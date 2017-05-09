@@ -8,6 +8,14 @@ class Exit(object):
         self.name = name
         self.path = path
 
+class VItem(object):
+    def __init__(self, item, parent=None):
+        self.item = item
+        self.parent = parent
+        self.long = None
+        self.short = None
+        self.name = None
+        self.alias = []
 
 class Room(object):
     def __init__(self, path):
@@ -39,6 +47,63 @@ class Room(object):
     def __repr__(self):
         return "<Room:\"{}\">".format(self.path)
 
+    def from_dm(self, text):
+        """
+        Evaluate text of a dm-source for this room.
+        """
+        doc = parser.parse_document(text)
+        self.dm_description(doc)
+        self.dm_exits(doc)
+
+    def dm_description(self, doc):
+        """
+        Find and evaluate the general room description.
+        """
+        if doc.sections:
+            s1 = doc.sections[0]
+            self.long = s1.text()
+            self.short = s1.heading
+            self.dm_vitems(s1)
+
+    def dm_exits(self, doc):
+        """
+        Find and evaluate exit definitions.
+        """
+        for sec in doc.sections:
+            if sec.heading == ":exits":
+                for ex_def in sec.sections:
+                    self.dm_exit(ex_def)
+
+    def dm_exit(self, ex_def):
+        """
+        Evaluate a single exit definition.
+        """
+        parts = ex_def.heading.split(":", 1)
+        if len(parts) == 2:
+            self.add_exit(parts[0].strip(), parts[1].strip())
+
+    def dm_vitems(self, main_sec):
+        for sec in main_sec.sections:
+            self.dm_vitem(sec, None)
+
+    def dm_vitem(self, sec, parent):
+        vitem = VItem(self, parent)
+        vitem.long = sec.text()
+        name = sec.heading.lower()
+        vitem.name = name
+        vitem.aliases = [name]
+        for p in sec.properties:
+            if p.heading == 'alias':
+                al = [a.strip() for a in p.text().split(",")]
+                vitem.aliases.extend(al)
+                break
+        self.vitems.append(vitem)
+
+    def find(self, what):
+        for v in self.vitems:
+            if what in v.aliases:
+                return v
+        return None
 
 class RoomTable(object):
     def __init__(self):
@@ -74,7 +139,9 @@ class RoomTable(object):
         p = "data" + path + '.dm'
         #p = os.path.join("data", path) + '.dm'
         # print("P", p)
-        doc = parser.load_document(p)
-        s1 = doc.sections[0]
-        r.long = s1.text()
+        with open(p, "rt") as f:
+            r.from_dm(f.read())
         return r
+
+    def dm_exits(self, room, doc):
+        pass
