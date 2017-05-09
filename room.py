@@ -1,7 +1,7 @@
 from collections import OrderedDict
 import os
 
-import parser
+import dml
 
 class Exit(object):
     def __init__(self, name, path):
@@ -51,7 +51,9 @@ class Room(object):
         """
         Evaluate text of a dm-source for this room.
         """
-        doc = parser.parse_document(text)
+        #doc = parser.parse_document(text)
+        doc = dml.Document()
+        doc.parse(text)
         self.dm_description(doc)
         self.dm_exits(doc)
 
@@ -59,10 +61,10 @@ class Room(object):
         """
         Find and evaluate the general room description.
         """
-        if doc.sections:
-            s1 = doc.sections[0]
+        if doc.main_section:
+            s1 = doc.main_section
             self.long = s1.text()
-            self.short = s1.heading
+            self.short = s1.title
             self.dm_vitems(s1)
 
     def dm_exits(self, doc):
@@ -70,7 +72,7 @@ class Room(object):
         Find and evaluate exit definitions.
         """
         for sec in doc.sections:
-            if sec.heading == ":exits":
+            if sec.title == ":exits":
                 for ex_def in sec.sections:
                     self.dm_exit(ex_def)
 
@@ -78,7 +80,7 @@ class Room(object):
         """
         Evaluate a single exit definition.
         """
-        parts = ex_def.heading.split(":", 1)
+        parts = ex_def.title.split(":", 1)
         if len(parts) == 2:
             self.add_exit(parts[0].strip(), parts[1].strip())
 
@@ -89,11 +91,11 @@ class Room(object):
     def dm_vitem(self, sec, parent):
         vitem = VItem(self, parent)
         vitem.long = sec.text()
-        name = sec.heading.lower()
+        name = sec.title.lower()
         vitem.name = name
         vitem.aliases = [name]
         for p in sec.properties:
-            if p.heading == 'alias':
+            if p.keyword == 'alias':
                 al = [a.strip() for a in p.text().split(",")]
                 vitem.aliases.extend(al)
                 break
