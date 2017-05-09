@@ -6,11 +6,13 @@ grünen Gras.
 
 Ein kleiner Trampelpfad führt Richtung Osten durch das Gestrüpp.
 
-.sinn geräusch
+.sense geräusch
 Du hörst das Plätschern des Flusses.
+..message
+$Der lauscht dem Fluss.
 
-..beobachter
-${Der()} lauscht dem Fluss.
+.sense geruch
+Frische Luft!
 
 .sinn element
 Durch diesen Ort ist eindeutig dominiert von Wasser. Eine starke elementare
@@ -24,13 +26,17 @@ Das Wasser plätschert lustig vor sich hin.
 .alias
 wasser, bach, weiher
 
-.sinn geräusch
+.sense geräusch
 Ja, vom Fluss kommt das Plätschern. Du geniest das Geräusch und entspannst ein
 wenig.
+..message
+$Der schließt die Augen und lauscht dem Fluss.
 
-..beobachter
-${Der()} schließt die Augen und lauscht dem Fluss.
+.sense geruch
+Du riechst frische, feuchte Luft vom Fluss kommend.
+..message
+$Der atmet die feuchte Luft des Flusses ein.
 
 # :exits
 ## osten: /am_fluss/pfad
-## westen: /am_fluss/im_wasser
+## westen: im_wasser

@@ -1,11 +1,22 @@
 """
 Deep Mud Language (dm) Parser
+
+Experimental POC parser for DM-documents, that is able to create a
+document tree from a DM-document (most likely a .dm file). Parser will be
+extended as the language develops. DM-Documents are simple abstractly
+stuctured documents, but the classes of this parser contain helper methods
+that can extract specific information for special use cases, e.g. find the
+exits definition within a room defining dm document.
 """
 
 import re
 
 _blanks_re = re.compile(r"\s+")
+
 def _work_blanks_lines(text_lines):
+    """
+    Unify whitespaces within text lines, e.g. of a paragraph.
+    """
     lines = []
     for line in text_lines:
         l = _blanks_re.sub(line, " ").strip()
@@ -14,6 +25,9 @@ def _work_blanks_lines(text_lines):
     return " ".join(lines)
 
 def _work_blanks_text(text):
+    """
+    Unify whitespaces within a text, e.g. a paragraph.
+    """
     return _work_blanks_lines(text.split("\n"))
 
 
@@ -34,6 +48,20 @@ class Document(object):
 
     def __repr__(self):
         return "<DM:Document>"
+
+    def find_section(self, title):
+        """
+        Find and return section with the given title.
+
+        Only searches sections at top level and only for exact
+        matches. Head and main section are not included, as they
+        do not really have titles.
+        """
+        if len(self.sections) > 2:
+            for s in self.sections[2:]:
+                if s.title == title:
+                    return s
+        return None
 
     def _parse_line(self, line):
         """
@@ -191,6 +219,18 @@ class Block(object):
     def text(self):
         return "\n".join([p.text() for p in self.paragraphs])
 
+    def find_property(self, keyword):
+        for p in self.properties:
+            if p.keyword == keyword:
+                return p
+        return None
+
+    def find_properties(self, keyword):
+        found = []
+        for p in self.properties:
+            if p.keyword == keyword:
+                found.append(p)
+        return found
 
 class Section(Block):
     """
@@ -218,9 +258,9 @@ class Property(Block):
         parts = re.split(r"\s+", self.title, 1)
         self.keyword = parts[0]
         if len(parts) > 1:
-            self.arg_line = parts[1]
+            self.argument = parts[1]
         else:
-            self.arg_line = ""
+            self.argument = ""
 
     def __repr__(self):
         return "<DM:Property(L{}: {})>".format(

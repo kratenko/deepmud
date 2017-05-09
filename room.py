@@ -8,6 +8,20 @@ class Exit(object):
         self.name = name
         self.path = path
 
+class Sense(object):
+    def __init__(self, parent, channel=None):
+        self.parent = parent
+        self.channel = channel
+        self.text = None
+        self.message = None
+
+    def from_dm(self, property):
+        self.channel = property.argument
+        self.text = property.text()
+        msg = property.find_property('message')
+        if msg:
+            self.message = msg.text()
+
 class VItem(object):
     def __init__(self, item, parent=None):
         self.item = item
@@ -16,12 +30,14 @@ class VItem(object):
         self.short = None
         self.name = None
         self.alias = []
+        self.senses = {}
+
 
 class Room(object):
     def __init__(self, path):
         self.path = path
         self.exits = OrderedDict()
-        self.senses = []
+        self.senses = {}
         self.name = None
         self.long = None
         self.short = None
@@ -33,6 +49,15 @@ class Room(object):
 
     def get_short(self):
         return self.short
+
+    def _relative_path(self, path):
+        if path.startswith("/"):
+            # is absolute path, this object's path irrelevant
+            return os.path.normpath(path)
+        else:
+            # relative path:
+            self_dir = os.path.dirname(self.path)
+            return os.path.normpath(os.path.join(self_dir, path))
 
     def add_exit(self, name, path):
         self.exits[name] = Exit(name, path)
@@ -66,6 +91,11 @@ class Room(object):
             self.long = s1.text()
             self.short = s1.title
             self.dm_vitems(s1)
+            for sense_def in doc.main_section.find_properties('sense'):
+                sense = Sense(self)
+                sense.from_dm(sense_def)
+                if sense.channel not in self.senses:
+                    self.senses[sense.channel] = sense
 
     def dm_exits(self, doc):
         """
@@ -82,7 +112,9 @@ class Room(object):
         """
         parts = ex_def.title.split(":", 1)
         if len(parts) == 2:
-            self.add_exit(parts[0].strip(), parts[1].strip())
+            direction = parts[0].strip()
+            path = self._relative_path(parts[1].strip())
+            self.add_exit(direction, path)
 
     def dm_vitems(self, main_sec):
         for sec in main_sec.sections:
@@ -94,11 +126,15 @@ class Room(object):
         name = sec.title.lower()
         vitem.name = name
         vitem.aliases = [name]
-        for p in sec.properties:
-            if p.keyword == 'alias':
-                al = [a.strip() for a in p.text().split(",")]
-                vitem.aliases.extend(al)
-                break
+        alias_def = sec.find_property('alias')
+        if alias_def:
+            al = [a.strip() for a in alias_def.text().split(",")]
+            vitem.aliases.extend(al)
+        for sense_def in sec.find_properties('sense'):
+            sense = Sense(vitem)
+            sense.from_dm(sense_def)
+            if sense.channel not in vitem.senses:
+                vitem.senses[sense.channel] = sense
         self.vitems.append(vitem)
 
     def find(self, what):
@@ -110,6 +146,7 @@ class Room(object):
 class RoomTable(object):
     def __init__(self):
         self.rooms = {}
+        self.base_dir = "data"
 
     def get_room(self, path):
         if path in self.rooms:
@@ -138,12 +175,10 @@ class RoomTable(object):
 
     def load_dm(self, path):
         r = Room(path)
-        p = "data" + path + '.dm'
+        p = os.path.join(self.base_dir, path[1:]) + '.dm'
+        #p = "data" + path + '.dm'
         #p = os.path.join("data", path) + '.dm'
         # print("P", p)
         with open(p, "rt") as f:
             r.from_dm(f.read())
         return r
-
-    def dm_exits(self, room, doc):
-        pass

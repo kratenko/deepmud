@@ -42,8 +42,6 @@ class Viewer(object):
 
     def loop(self):
         self.looping = True
-        self.intro()
-        self.action_look("")
         while self.looping:
             cmd = self.input()
             self.action(cmd)
@@ -75,6 +73,10 @@ Wenn du keine Lust mehr hast, kommst du mit "ende" hier raus.
             self.looping = False
         elif cmd in std_exits:
             self.action_move(cmd)
+        elif cmd in ['riech', 'rieche']:
+            self.action_rieche(parm_line)
+        elif cmd in ['lausch', 'lausche', 'hoer', 'hoere', 'hör', 'höre']:
+            self.action_lausche(parm_line)
         else:
             self.out("Wie bitte?")
 
@@ -92,34 +94,61 @@ Wenn du keine Lust mehr hast, kommst du mit "ende" hier raus.
         else:
             self.out("Whoops! Du bist nirgends. Nix zu sehen...")
 
+    def action_rieche(self, what):
+        sense = self.find_sense("geruch", what)
+        if sense is None:
+            self.out(what + " nicht gefunden")
+        elif sense is False:
+            self.out("Du riechst nichts.")
+        else:
+            self.out(sense.text)
+
+    def action_lausche(self, what):
+        sense = self.find_sense("geräusch", what)
+        if sense is None:
+            self.out(what + " nicht gefunden")
+        elif sense is False:
+            self.out("Du hörst nichts.")
+        else:
+            self.out(sense.text)
+
+    def find_sense(self, channel, what):
+        if what:
+            ob = self.environment.find(what)
+        else:
+            ob = self.environment
+        if ob:
+            if channel in ob.senses:
+                return ob.senses[channel]
+            else:
+                return False
+        else:
+            return None
+
     def action_move(self, cmd):
         if self.environment:
             if cmd in self.environment.exits:
                 ex = self.environment.exits[cmd]
-                dest = self.rooms.get_room(ex.path)
-                self.environment = dest
-                self.action_look("")
+                try:
+                    dest = self.rooms.get_room(ex.path)
+                except Exception as ex:
+                    self.out("Whoops! Da ist was schief gelaufen...")
+                    self.out("["+ex.__str__()+"]")
+                    return
+                self.enter_room(dest)
             else:
                 self.out("Da geht es nicht weiter.")
         else:
             self.out("Du bist nirgends, da kannst du auch nicht weg.")
 
+    def enter_room(self, room):
+        self.environment = room
+        self.out("[" + room.path + "]")
+        self.action_look("")
+
 rooms = room.RoomTable()
 r1 = rooms.get_room("/am_fluss/ufer")
 viewer = Viewer(rooms=rooms)
-viewer.environment = r1
+viewer.intro()
+viewer.enter_room(r1)
 viewer.loop()
-exit()
-
-starting_room = room.Room("/start")
-starting_room.short = "Am Anfang"
-starting_room.long = "Du bist dort, wo alles anfängt."
-starting_room.add_exit("osten", "/zwei")
-starting_room.add_exit("norden", "/am_fluss/ufer")
-rooms.insert_room(starting_room)
-
-room2 = room.Room("/zwei")
-room2.short = "Daneben"
-room2.long = "Hier gehts weiter"
-room2.add_exit("westen", "/start")
-rooms.insert_room(room2)
