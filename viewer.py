@@ -50,11 +50,15 @@ class Viewer(object):
         hi = """Hallo,
 willkommen im Deep MUD dev viewer. Viel geht hier nicht, aber sieh dich ruhig
 um. Der wichtigste Befehl ist "betrachte" (oder "b") um dich umzuschauen.
-Bewegen kannst du dich mit dem Namen der Ausgänge, also z.B. "osten", "runter"
+Bewegen kannst du dich mit den Namen der Ausgänge, also z.B. "osten", "runter"
 oder verkürzt "n", "nw", "r", etc.
+Mit "rieche", "lausche" und "fühle" kannst du noch mehr erfahren.
 Wenn du keine Lust mehr hast, kommst du mit "ende" hier raus.
 """
+        self.out("\n")
+        self.out("\n")
         self.out(hi)
+        self.out("\n")
 
     def action(self, line):
         if " " in line:
@@ -77,6 +81,8 @@ Wenn du keine Lust mehr hast, kommst du mit "ende" hier raus.
             self.action_rieche(parm_line)
         elif cmd in ['lausch', 'lausche', 'hoer', 'hoere', 'hör', 'höre']:
             self.action_lausche(parm_line)
+        elif cmd in ['tast', 'taste', 'fühl', 'fühle', 'fuehl', 'fuehle']:
+            self.action_taste(parm_line)
         else:
             self.out("Wie bitte?")
 
@@ -100,6 +106,15 @@ Wenn du keine Lust mehr hast, kommst du mit "ende" hier raus.
             self.out(what + " nicht gefunden")
         elif sense is False:
             self.out("Du riechst nichts.")
+        else:
+            self.out(sense.text)
+
+    def action_taste(self, what):
+        sense = self.find_sense("gefühl", what)
+        if sense is None:
+            self.out(what + " nicht gefunden")
+        elif sense is False:
+            self.out("Du fühlst nichts.")
         else:
             self.out(sense.text)
 
@@ -147,7 +162,7 @@ Wenn du keine Lust mehr hast, kommst du mit "ende" hier raus.
         self.action_look("")
 
 rooms = room.RoomTable()
-r1 = rooms.get_room("/am_fluss/ufer")
+r1 = rooms.get_room("/kreuzung/kreuzung")
 viewer = Viewer(rooms=rooms)
 viewer.intro()
 viewer.enter_room(r1)
