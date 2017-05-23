@@ -16,5 +16,35 @@ Verkehrswege kreuzen.
 .alias
 herberge, gasthaus, hütte
 
+
+// Hauptstraße: der breite Weg:
+## Weg
+. {ich.ist(magier)}
+Als Magier erkennst du natürlich sofort, dass der breite Weg durch einen
+starken Zauber geschützt sind.
+. {else}
+Der breite Weg ist irgendwie unbegehbar, aber wieso nur?
+..add {hier.ist(regen)}
+So matschig wie die Straße durch den Regen geworden ist, willst
+du dort sowieso nicht längsgehen.
+.adjektive
+breit
+.alias Hauptstraße, Straße
+### Schutzzauber {ich.ist(magier)}
+Ein wirklich mächtiger Schutzzauber liegt auf dem Weg. Du findest keine
+Anhaltspunkte, wo der Zauber herkommt, aber du wirst sicher nicht gegen
+ihn gegenankommen. Du wirst wohl nicht so einfach von dieser
+Kreuzung wegkommen.
+
+
+// Die Wachstraße: der schmale Weg
+## Weg
+Der schmalere Weg ist ganz klar unbetretbar. Aber wieso bloß?
+
+## Weg {ich.ist(magier)}
+Der schmalere Weg ist eigentich gar nicht magisch geschützt, aber der
+Schutzzauber auf dem Hauptweg ist so stark, dass er beide Wege blockiert.
+
+
 # :exits
 ## norden: vorplatz
