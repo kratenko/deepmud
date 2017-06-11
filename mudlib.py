@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class MudlibClass(object):
     """
-    Classes for creating objects in mudlib.
+    Classes for creating objects in mudlib (ML-Class or mlclass).
 
     A mudlib class is a definition of a thing (room, monster, weapon, ...) inside
     the mudlib. They are defined by python files and deepmud files. Mudlib classes
@@ -22,6 +22,8 @@ class MudlibClass(object):
         self.pyclass = None
         self.dmclass = None
         self.instance = None
+        self.instances = []
+        self.kind = None
 
     def create(self):
         """
@@ -31,11 +33,24 @@ class MudlibClass(object):
         :return: the instance
         """
         logger.info("Creating " + self.path)
+        if self.kind != "singleton":
+            raise AssertionError("Create called for class of kind %s", self.kind)
         ob = self.pyclass()
         ob._mlclass = self
         # TODO: dm-file
         ob.create()
         self.instance = ob
+        return ob
+
+    def clone(self):
+        logger.info("Cloning " + self.path)
+        if self.kind != "cloneable":
+            raise AssertionError("Clone called for class of kind %s", self.kind)
+        ob = self.pyclass()
+        ob._mlclass = self
+        # TODO: dm-file
+        ob.create()
+        self.instances.append(ob)
         return ob
 
 
@@ -75,13 +90,19 @@ class Mudlib(object):
         Create dict to inject into python modules as globals.
         """
         self._globals = {}
+
         def mlclass(path):
             # TODO: relative paths
             return self.get_mlclass(path=path)
+        self._globals['mlclass'] = mlclass
+
         def pyclass(path):
             return mlclass(path).pyclass
-        self._globals['mlclass'] = mlclass
         self._globals['pyclass'] = pyclass
+
+        def clone(path):
+            return self.world.clone(path)
+        self._globals['clone'] = clone
 
     def inject_globals_to_module(self, mod):
         """
@@ -152,6 +173,7 @@ class Mudlib(object):
             raise AssertionError("No ML-Class definition found")
         mlc = MudlibClass(mudlib=self, path=path)
         mlc.pyclass = pyclass
+        mlc.kind = pyclass.kind
         mlc.dm_text = dm_text
         self.classes[path] = mlc
         logger.info("ML-Class %s loaded.", path)
@@ -181,3 +203,7 @@ class Mudlib(object):
             return mlclass.create()
         else:
             return mlclass.instance
+
+    def clone(self, path):
+        mlclass = self.get_mlclass(path=path)
+        return mlclass.clone()
