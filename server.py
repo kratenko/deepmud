@@ -4,6 +4,8 @@ import time
 import logging
 import re
 
+from world import Command
+
 logger = logging.getLogger(__name__)
 
 
@@ -31,16 +33,24 @@ class Client(object):
         #
         self.buffer = bytearray()
         self.name = None
+        self.anchor = None
 
     def _handle_line(self, line):
-        print("Client %d: '%s'" % (self.id, line))
         if self.state == 'ask_name':
             name = line.strip()
             if re.match(r"^\w{3,15}$", name) and not re.match(".*\d.*", name):
                 self.name = name
-                self.state = "login"
+                self.state = "game"
+                # attach to game object:
+                self.anchor = self.server.driver.get_client_anchor(self, name)
             else:
                 self.send("Sorry, that's not valid. Names, for now, must be 3 to 15 letters.\nTry again, please: ")
+        elif self.state == 'game':
+            if self.anchor:
+                command = Command(self, line)
+                self.anchor.handle_command(command)
+            else:
+                raise ClientException("No anchor to handle your input.")
 
     def _handle_bytes(self, data):
         self.buffer.extend(data)
@@ -66,6 +76,7 @@ class Client(object):
 
     def recv(self):
         data = self.socket.recv(1024)
+        # TODO: kick flooding clients
         if not data:
             # socket closed from other side, most likely:
             raise ClientException("Socket broke")
@@ -98,7 +109,7 @@ class Client(object):
 
 
 class Server(object):
-    def __init__(self, host, port):
+    def __init__(self, host, port, driver):
         self.host = host
         self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -106,6 +117,7 @@ class Server(object):
         self.selector = selectors.DefaultSelector()
         self.clients = {}
         self.last_client_id = 0
+        self.driver = driver
 
     def next_client_id(self):
         self.last_client_id += 1
@@ -122,6 +134,7 @@ class Server(object):
 
     def accept(self, _, key):
         conn, addr = self.socket.accept()
+        conn.setblocking(False)
         client_id = self.next_client_id()
         logger.info("Accepting #%d: %s from %s" % (client_id, conn, addr))
         self.selector.register(conn, selectors.EVENT_READ, (client_id, self.recv))
@@ -134,6 +147,7 @@ class Server(object):
         logger.info("Disconnecting client %s, reason: %s", client, reason)
         self.selector.unregister(client.fd)
         del self.clients[client.id]
+        client.send("Closing connection: " + reason + "\n")
         client.close()
 
     def recv(self, client_id, key):

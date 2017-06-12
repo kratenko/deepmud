@@ -15,7 +15,7 @@ class Item(object):
             self.actions = []
         if type(command) is str:
             command = (command,)
-        self.actions.append(command, callback)
+        self.actions.append((command, callback))
 
     def create(self):
         pass

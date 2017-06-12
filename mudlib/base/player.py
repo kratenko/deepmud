@@ -3,7 +3,13 @@ class Player(pyclass("/base/container")):
 
     def __init__(self):
         super().__init__()
+        self.client = None
+        self.name = "Player"
         self.add_action("die", self.action_die)
+
+    def setup_player(self, client, name):
+        self.client = client
+        self.name = name
 
     def action_die(self, command):
         if command.actor is not self:
@@ -60,3 +66,18 @@ class Player(pyclass("/base/container")):
             else:
                 message = message or msg
         return False, message
+
+    def send(self, text, *, raw=False):
+        if not raw:
+            if not text.endswith("\n"):
+                text += "\n"
+        if self.client:
+            self.client.send(text)
+
+    def handle_command(self, command):
+        success, message = self.action(command)
+        if not success:
+            if message:
+                self.send(message)
+            else:
+                self.send("What?")
