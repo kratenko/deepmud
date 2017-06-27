@@ -9,6 +9,9 @@ space_matcher = re.compile(r"\s+")
 
 
 class World(object):
+    """
+    The world containing everything in the mud.
+    """
     def __init__(self, *, mudlib_path):
         logger.info("Creating world.")
         self.mudlib_path = mudlib_path
@@ -23,6 +26,14 @@ class World(object):
         return self.last_item_id
 
     def get_singleton(self, path):
+        """
+        Get instance of a singleton mudlib object.
+
+        Returns the instance of a mudlib class that can be instantiated only once. Loads
+        the class and creates the object if necessary.
+        :param path:
+        :return:
+        """
         path = self.mudlib.normpath(path)
         if path in self.singletons:
             return self.singletons[path]
@@ -34,6 +45,13 @@ class World(object):
             return item
 
     def clone(self, path):
+        """
+        Get new instance of mudlib class.
+
+        Creates a new instance of the given class and returns it. Loads the class if necessary.
+        :param path:
+        :return:
+        """
         path = self.mudlib.normpath(path)
         item = self.mudlib.clone(path=path)
         item._id = self.next_item_id()
@@ -45,6 +63,9 @@ class World(object):
 
 
 class Command(object):
+    """
+    A command sent by a player to be executed in mud world.
+    """
     def __init__(self, actor, line):
         self.actor = actor
         self.line = line
