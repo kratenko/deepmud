@@ -41,24 +41,16 @@ class Client(object):
     def _handle_line(self, line):
         """
         Handle a single completed line received from socket.
+
+        Lines are parsed into a command that is passed on to the attached anchor.
         :param line:
         :return:
         """
-        if self.state == 'ask_name':
-            name = line.strip()
-            if re.match(r"^\w{3,15}$", name) and not re.match(".*\d.*", name):
-                self.name = name
-                self.state = "game"
-                # attach to game object:
-                self.anchor = self.server.driver.get_client_anchor(self, name)
-            else:
-                self.send("Sorry, that's not valid. Names, for now, must be 3 to 15 letters.\nTry again, please: ")
-        elif self.state == 'game':
-            if self.anchor:
-                command = Command(self, line)
-                self.anchor.handle_command(command)
-            else:
-                raise ClientException("No anchor to handle your input.")
+        if self.anchor:
+            command = Command(self, line)
+            self.anchor.handle_command(command)
+        else:
+            raise ClientException("No anchor to handle your input.")
 
     def _handle_bytes(self, data):
         """
@@ -139,16 +131,16 @@ class Client(object):
             self.read, self.sent,
         )
 
-    def welcome(self):
-        """
-        Actions performed after client has been connected.
-        :return:
-        """
-        self.send("Welcome. We need to go deeper!\n\nChoose a name: ")
-        self.state = "ask_name"
+    def attach_anchor(self, anchor):
+        logger.info("Attaching %s to anchor %s", self, anchor)
+        self.anchor = anchor
+        self.anchor.attach_client(self)
 
 
 class Server(object):
+    """
+    The Server listening for new connections and handling existing clients.
+    """
     def __init__(self, host, port, driver):
         logger.info("Creating server.")
         self.host = host
@@ -189,7 +181,8 @@ class Server(object):
         client = Client(self, client_id, conn, addr)
         self.clients[client_id] = client
         # start greet - login - whatever:
-        client.welcome()
+        login = self.driver.world.clone("/sys/login")
+        client.attach_anchor(login)
 
     def disconnect(self, client, reason):
         """

@@ -150,6 +150,8 @@ class Mudlib(object):
         spec.loader.exec_module(foo)
         pyclass = self.find_class_in_mod(foo)
         pyclass._mlpath = path
+        # add logger to class
+        pyclass.logger = logging.getLogger(mod_name)
         return pyclass
 
     def load_mlclass(self, path):
