@@ -116,21 +116,18 @@ class Mudlib(object):
         """
         Find and return the python class for mlclass from a loaded mod.
 
-        Currently returns the first class with a name that does not
-        start with an underscore. I guess this will fail if you import
-        any classes to global namespace. Maybe use name of mod to find class?
+        Currently returns the first class with a name that matches the
+        base name of the path to load.
         :param mod: loaded python mod
         :return: the python class to use
         """
         mod_name = mod.__name__
-        last_name = mod_name.split('.')[-1]
+        cls_name = posixpath.split(mod_name)[-1]
         for k in dir(mod):
-            if k.startswith("_"):
-                continue
             v = getattr(mod, k)
-            if inspect.isclass(v):
+            if inspect.isclass(v) and k.lower() == cls_name.lower():
                 return v
-        raise AssertionError("Could not find class in " + mod)
+        raise AssertionError("Could not find class in " + repr(mod))
 
     def load_pyclass(self, path):
         """
