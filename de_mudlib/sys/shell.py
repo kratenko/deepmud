@@ -44,6 +44,9 @@ class Shell(object):
 
     def attach_client(self, client):
         console_locals = {
+            'shell': self,
+            'client': client,
+            'player': self.player,
             'exit': self.exit_to_player,
         }
         console_locals.update(globals())
