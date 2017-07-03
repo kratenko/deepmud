@@ -102,8 +102,8 @@ class Client(object):
         :return:
         """
         """
-        :param data: 
-        :return: 
+        :param data:
+        :return:
         """
         if type(data) == str:
             data = data.encode("utf-8")
@@ -214,6 +214,10 @@ class Server(object):
             client.recv()
         except ClientException as e:
             self.disconnect(client, e.args[0])
+        except Exception as e:
+            # Something probably broke in the MUD lib.
+            logger.exception("Unhandled exception while handling client {}:\n".format(client_id,client))
+            self.disconnect(client, "Sorry :(")
 
     def handle_incoming(self, timeout=None):
         """
