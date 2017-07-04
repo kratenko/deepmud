@@ -169,7 +169,7 @@ class Mudlib(object):
         except FileNotFoundError:
             dm_text = None
         if pyclass is None and dm_text is None:
-            raise AssertionError("No ML-Class definition found")
+            raise AssertionError("No ML-Class definition found in {}".format(path))
         mlc = MudlibClass(mudlib=self, path=path)
         mlc.pyclass = pyclass
         mlc.kind = pyclass.kind
