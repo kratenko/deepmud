@@ -79,6 +79,13 @@ class Mudlib(object):
     def os_path(self, path):
         """
         Return full os path for mudlib path.
+        Ensures that the absolute path is prefixed with the mudlib folder.
+
+        >>> ml = Mudlib(mudlib_path="/test", None)
+        >>> ml.os_path("../foo")
+        AssertionError: Mudlib paths must be absolute for loading
+        >>> ml.os.path("/../../foo")
+        /test/foo
         """
         path = os.path.normpath(path)
         if not path.startswith('/'):
