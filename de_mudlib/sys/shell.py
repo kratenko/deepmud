@@ -47,6 +47,7 @@ class Shell(object):
             'shell': self,
             'client': client,
             'player': self.player,
+            'mudlib': self.player._mlclass.mudlib,
             'exit': self.exit_to_player,
         }
         console_locals.update(globals())
