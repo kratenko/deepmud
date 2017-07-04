@@ -111,6 +111,8 @@ class Mudlib(object):
             return self.world.clone(path)
         self._globals['clone'] = clone
 
+        # TODO: make it possible to extend this dictionary via the MUDlib
+
     def inject_globals_to_module(self, mod):
         """
         Insert global variables needed to execute module.
