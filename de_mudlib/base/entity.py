@@ -1,4 +1,4 @@
-class Item(object):
+class Entity(object):
     """
     Base class for everything existing in mudlib.
     """
@@ -21,4 +21,4 @@ class Item(object):
         pass
 
     def test_me(self):
-        return "I am an Item"
+        return "I am an Entity"
