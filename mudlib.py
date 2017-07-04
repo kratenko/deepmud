@@ -178,6 +178,23 @@ class Mudlib(object):
         logger.info("ML-Class %s loaded.", path)
         return mlc
 
+    def unload(self, path):
+        """
+        Unload the mudlib class so that invoking methods such as clone
+        need to load the class again.
+        :param path: absolute mudlib path (without extensions)
+        """
+        del self.classes[path]
+
+    def reload(self, path):
+        """
+        Unload and load the mudlib class for the given path.
+        :param path: absolute mudlib path (without extensions)
+        :return: object representing the mudlib class
+        """
+        self.unload(path)
+        return self.get_mlclass(path=path)
+
     def get_mlclass(self, *, path):
         """
         Return mudlib class for given absolute path.
