@@ -193,14 +193,29 @@ class Mudlib(object):
         need to load the class again.
         :param path: absolute mudlib path (without extensions)
         """
-        del self.classes[path]
+        try:
+            del self.classes[self.normpath(path)]
+        except KeyError:
+            pass
 
-    def reload(self, path):
+    def reload(self, path, recursive=True):
         """
-        Unload and load the mudlib class for the given path.
+        Unload and load the mudlib class for the given path recursively,
+        i.e. every mudlib class this class depends on will be reloaded as well.
         :param path: absolute mudlib path (without extensions)
+        :param recursive: turn recursive reloading on or off
         :return: object representing the mudlib class
         """
+        path = self.normpath(path)
+        if path not in self.classes:
+            return self.get_mlclass(path=path)
+        cls = self.get_mlclass(path=path)
+
+        if recursive:
+            for parent in cls.pyclass.__bases__:
+                if hasattr(parent, '_mlpath'):
+                    self.reload(parent._mlpath)
+
         self.unload(path)
         return self.get_mlclass(path=path)
 
