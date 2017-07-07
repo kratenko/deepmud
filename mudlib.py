@@ -111,6 +111,10 @@ class Mudlib(object):
             return self.world.clone(path)
         self._globals['clone'] = clone
 
+        def single(path):
+            return self.world.get_singleton(path)
+        self._globals['single'] = single
+
         # TODO: make it possible to extend this dictionary via the MUDlib
 
     def inject_globals_to_module(self, mod):
@@ -196,7 +200,7 @@ class Mudlib(object):
         try:
             del self.classes[self.normpath(path)]
         except KeyError:
-            pass
+            logging.error('Attempting to unload unknown path "{}"'.format(path))
 
     def reload(self, path, recursive=True):
         """

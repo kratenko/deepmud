@@ -6,6 +6,7 @@ class Player(pyclass("/base/container")):
         self.client = None
         self.name = "Spieler"
         self.add_action("hilfe", self.action_hilfe)
+        self.add_action("schau", self.action_schau)
         self.add_action("shell", self.action_shell)
         self.add_action("ende", self.action_ende)
 
@@ -15,6 +16,13 @@ class Player(pyclass("/base/container")):
 
     def action_hilfe(self, command):
         self.send("  = Hilfe =  \nMit 'ende' kannst du das Spiel verlassen.")
+        return True, None
+
+    def action_schau(self, command):
+        assert self.environment != None
+        self.send(self.environment.get_description(context={
+            'spieler': self,
+        })['long'])
         return True, None
 
     def action_shell(self, command):

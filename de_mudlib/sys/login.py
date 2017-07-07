@@ -34,6 +34,7 @@ In der Phase sind wir in etwa. Also erwarte nicht zu viel.
             self.send("Hallo %s!\n" % name)
             body = self._mlclass.mudlib.clone("/base/player")
             body.name = name
+            body.environment = single("/world/void")
             self.client.attach_anchor(body)
             self.client = None
         else:
