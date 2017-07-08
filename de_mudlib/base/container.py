@@ -1,4 +1,4 @@
-class Container(pyclass("/base/entity")):
+class Container(pyclass("/base/describable")):
     def __init__(self):
         super().__init__()
         self.contents = []

@@ -13,5 +13,6 @@ class Void(pyclass('/base/room')):
                 guard=self._spieler_heisst_foo
         )
 
+
     def _spieler_heisst_foo(self, *x, **y):
         return y['spieler'].name == 'foo'

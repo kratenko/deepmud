@@ -104,6 +104,7 @@ class Mudlib(object):
         self._globals['mlclass'] = mlclass
 
         def pyclass(path):
+            logging.debug("pyclass({})".format(path))
             return mlclass(path).pyclass
         self._globals['pyclass'] = pyclass
 
