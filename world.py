@@ -69,6 +69,7 @@ class Command(object):
     def __init__(self, actor, line):
         self.actor = actor
         self.line = line
+        self.supplier = None
         parts = space_matcher.split(line, 1)
         if len(parts) == 1:
             command, arg_line = parts[0], ""

@@ -16,35 +16,25 @@ class Player(pyclass("/base/container")):
 
     def action_hilfe(self, command):
         self.send("  = Hilfe =  \nMit 'ende' kannst du das Spiel verlassen.")
-        return True, None
+        return True
 
     def action_schau(self, command):
-        assert self.environment != None
+        assert self.environment is not None
         self.send(self.environment.get_description(context={
             'spieler': self,
         })['long'])
-        return True, None
+        return True
 
     def action_shell(self, command):
         shell = clone('/sys/shell')
         shell.set_player(self)
         self.client.attach_anchor(shell)
-        return True, None
+        return True
 
     def action_ende(self, command):
         self.send("Bis bald!")
         self.client.disconnect(reason="Player quit.")
-        return True, ""
-
-    def _try_action(self, supplier, command):
-        message = None
-        if supplier.actions:
-            for cmd_def, callback in supplier.actions:
-                if command.command in cmd_def:
-                    success, message = callback(command=command)
-                    if success:
-                        return True, None
-        return False, message
+        return True
 
     def action(self, command):
         """
@@ -55,37 +45,31 @@ class Player(pyclass("/base/container")):
         :param command:
         :return:
         """
-        message = None
-        # try self:
-        success, msg = self._try_action(self, command)
-        if success:
-            return success, msg
-        else:
-            message = message or msg
-        # try environment:
+        # 1st: try self:
+        result = self.try_command(self, command)
+        if result:
+            return result
+        # 2nd: try environment:
         if self.environment:
-            success, msg = self._try_action(self.environment, command)
-            if success:
-                return success, msg
-            else:
-                message = message or msg
-            # try stuff in environment:
+            result = self.try_command(self.environment, command)
+            if result:
+                return result
+            # 3rd: try other entities in environment
             for item in self.environment.contents:
                 if item is self:
+                    # do not try self again:
                     continue
-                success, msg = self._try_action(item, command)
-                if success:
-                    return success, msg
-                else:
-                    message = message or msg
-        # try inventory:
+                result = item.try_command(item, command)
+                if result:
+                    return result
+        # 4th: try inventory:
         for item in self.contents:
-            success, msg = self._try_action(item, command)
-            if success:
-                return success, msg
-            else:
-                message = message or msg
-        return False, message
+            result = item.try_command(item, command)
+            if result:
+                return result
+        # well, we tried:
+        return False
+
 
     def send(self, text, *, raw=False):
         if not raw:
@@ -95,9 +79,10 @@ class Player(pyclass("/base/container")):
             self.client.send(text)
 
     def handle_command(self, command):
-        success, message = self.action(command)
-        if not success:
-            if message:
-                self.send(message)
-            else:
-                self.send("Wie bitte?")
+        result = self.action(command)
+        if result is True:
+            pass
+        elif result is False:
+            self.send("Wie bitte?")
+        else:
+            self.send(result)

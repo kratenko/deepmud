@@ -67,6 +67,9 @@ class Mudlib(object):
         logger.info("Creating Mudlib with base: '%s'", self.mudlib_path)
         self.classes = {}
         self.build_globals()
+        if not hasattr(importlib.util, "module_from_spec"):
+            logger.info("Running on python < 3.5, replacing load_pyclass with load_pyclass33")
+            self.load_pyclass = self.load_pyclass33
 
     def normpath(self, path):
         """
@@ -164,6 +167,32 @@ class Mudlib(object):
         # add logger to class
         pyclass.logger = logging.getLogger(mod_name)
         return pyclass
+
+    def load_pyclass33(self, path):
+        from importlib.machinery import SourceFileLoader
+
+        # file path
+        py_path = self.os_path(path) + '.py'
+        # modname:
+        mod_name = '#mudlib:' + os.path.normpath(path)
+        logger.debug("Loading PY-Class (33): %s as %s.", py_path, mod_name)
+
+        # foo = SourceFileLoader(mod_name, py_path).load_module()
+        spec = SourceFileLoader(mod_name, py_path)
+        # self.inject_globals_to_module(spec)
+        logger.info(dir(spec))
+        foo = spec.load_module()
+        spec.load_module()
+        logger.info(dir(foo))
+        self.inject_globals_to_module(foo)
+        logger.info(dir(foo))
+        pyclass = self.find_class_in_mod(foo)
+        pyclass._mlpath = path
+        # add logger to class
+        pyclass.logger = logging.getLogger(mod_name)
+        return pyclass
+
+
 
     def load_mlclass(self, path):
         """
