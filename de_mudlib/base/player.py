@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger(__name__)
+
 class Player(pyclass("/base/container")):
     kind = "cloneable"
 
@@ -49,9 +52,10 @@ class Player(pyclass("/base/container")):
         result = self.try_command(self, command)
         if result:
             return result
+        logger.info("ENV; %s", self.environment)
         # 2nd: try environment:
         if self.environment:
-            result = self.try_command(self.environment, command)
+            result = self.environment.try_command(self.environment, command)
             if result:
                 return result
             # 3rd: try other entities in environment
@@ -69,7 +73,6 @@ class Player(pyclass("/base/container")):
                 return result
         # well, we tried:
         return False
-
 
     def send(self, text, *, raw=False):
         if not raw:

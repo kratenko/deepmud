@@ -30,7 +30,7 @@ class World(object):
         Get instance of a singleton mudlib object.
 
         Returns the instance of a mudlib class that can be instantiated only once. Loads
-        the class and creates the object if necessary.
+        the class and creates the object if necessary, but returns the existing instance, if there is any.
         :param path:
         :return:
         """
@@ -67,9 +67,9 @@ class Command(object):
     A command sent by a player to be executed in mud world.
     """
     def __init__(self, actor, line):
+        self.supplier = None
         self.actor = actor
         self.line = line
-        self.supplier = None
         parts = space_matcher.split(line, 1)
         if len(parts) == 1:
             command, arg_line = parts[0], ""
