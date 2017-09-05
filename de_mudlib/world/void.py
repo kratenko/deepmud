@@ -13,6 +13,7 @@ class Void(pyclass('/base/room')):
                 guard=self._spieler_heisst_foo
         )
 
+        self.add_exit("osten", "/world/void")
 
     def _spieler_heisst_foo(self, *x, **y):
         return y['spieler'].name == 'foo'

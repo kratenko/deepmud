@@ -9,7 +9,7 @@ class Player(pyclass("/base/container")):
         self.client = None
         self.name = "Spieler"
         self.add_action("hilfe", self.action_hilfe)
-        self.add_action("schau", self.action_schau)
+        self.add_action(["schau", "schaue", "betrachte", "b"], self.action_schau)
         self.add_action("shell", self.action_shell)
         self.add_action("ende", self.action_ende)
 

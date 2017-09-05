@@ -35,6 +35,7 @@ class Entity(object):
 
 
 class Action(object):
+
     def unify(self, command):
         # TODO: nicht nur Deutsch unterstützen
         return command.lower().replace('ä', 'ae').replace('ö', 'oe').replace('ü', 'ue').replace('ß', 'ss')
