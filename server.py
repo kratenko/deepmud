@@ -47,7 +47,7 @@ class Client(object):
         :return:
         """
         if self.anchor:
-            command = Command(self, line)
+            command = Command(self.anchor, line)
             self.anchor.handle_command(command)
         else:
             raise ClientException("No anchor to handle your input.")

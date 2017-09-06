@@ -53,6 +53,9 @@ class MudlibClass(object):
         self.instances.append(ob)
         return ob
 
+    def relative_path(self, path):
+        return posixpath.normpath(posixpath.join(posixpath.dirname(self.path), path))
+
 
 class Mudlib(object):
     """
@@ -157,7 +160,7 @@ class Mudlib(object):
         # modname:
         mod_name = '#mudlib:' + os.path.normpath(path)
         #mod_name = '#mudlib' + os.path.normpath(path).replace("\\", ".").replace("/", ".")
-        logger.debug("Loading PY-Class: %s as %s.", py_path, mod_name)
+        logger.debug("Loading PY-Class: '%s' as '%s'.", py_path, mod_name)
         spec = importlib.util.spec_from_file_location(mod_name, py_path)
         foo = importlib.util.module_from_spec(spec)
         self.inject_globals_to_module(foo)

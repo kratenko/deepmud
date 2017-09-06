@@ -83,3 +83,24 @@ class Command(object):
         self.command = command
         self.arg_line = arg_line
         self.args = args
+        #
+        self.target = False
+
+    def get_target(self):
+        if self.target is False:
+            self.target = self._find_target()
+        return self.target
+
+    def _find_target(self):
+        # TODO: also - das hier kann noch so gut wie gar nichts...
+        if self.args:
+            target_name = self.args[0].lower()
+            if target_name in ['ich', 'mich']:
+                return self.actor
+            if self.actor.environment:
+                t = self.actor.environment.find(target_name)
+                if t:
+                    return t
+            return self.actor.find(target_name)
+        else:
+            return None

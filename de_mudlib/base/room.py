@@ -34,7 +34,19 @@ class Room(pyclass("/base/container")):
         self.exits = collections.OrderedDict()
 
     def add_exit(self, direction, destination):
-        self.exits[direction] = destination
+        abs_path = self._mlclass.relative_path(destination)
+        self.exits[direction] = abs_path
+
+    def _move_through_exit(self, whom, direction):
+        destination_path = self.exits[direction]
+        try:
+            destination = single(destination_path)
+        except Exception as e:
+            return "Ups! Da ist wohl was schief gelaufen: " + str(e)
+        whom.move(to=destination)
+        whom._schau_umgebung()
+        return True
+
 
     def try_command(self, supplier, command):
         cmd = command.command.lower()
@@ -43,15 +55,25 @@ class Room(pyclass("/base/container")):
             cmd = STANDARD_DIRECTIONS_LOOKUP[cmd]
             is_standard = True
         if cmd in self.exits:
-            return "Let's try"
+            return self._move_through_exit(command.actor, cmd)
         if is_standard:
             return "Da geht's nicht weiter."
         return super().try_command(supplier, command)
 
     def get_description(self, context: dict):
-        desc = super().get_description(context)
+        desc = super().get_description(context).copy()
         if self.exits:
-            exit_list = ",".join(self.exits.keys())
-            desc['long'] += ("\n  Ausgänge: " + exit_list)
+            exit_list = ", ".join(self.exits.keys())
+            desc['long'] += ("\n  Ausgänge: " + exit_list + "\n")
+        if self.contents:
+            viewer = context['spieler']
+            items = []
+            for item in self.contents:
+                if item is viewer:
+                    # nicht selbst auflisten:
+                    continue
+                items.append(item.get_description(context)['short'])
+            if items:
+                desc['long'] += "Du siehst hier:\n  " + "\n  ".join(items) + "\n"
         return desc
 

@@ -9,7 +9,7 @@ class Login(object):
     zugewiesen wird. Sie regelt den Loginprozess und übergibt nach dem
     erfolgreichen Login den Client an ein neues Playerobjekt.
     """
-
+    INITIAL_ROOM = "/world/herrenhaus/1._stock/bibliothek"
     kind = "cloneable"
     greeting = """We need to go deeper.
 
@@ -33,8 +33,9 @@ In der Phase sind wir in etwa. Also erwarte nicht zu viel.
             self.logger.info("Logging in player %s", name)
             self.send("Hallo %s!\n" % name)
             body = self._mlclass.mudlib.clone("/base/player")
-            body.name = name
-            body.environment = single("/world/void")
+            body.set_name(name)
+            start_room = single(Login.INITIAL_ROOM)
+            body.move(to=start_room)
             self.client.attach_anchor(body)
             self.client = None
         else:

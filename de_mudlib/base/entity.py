@@ -9,6 +9,8 @@ class Entity(object):
         # environment: item this item is inside of.
         self.environment = None
         self.actions = None
+        self.name = None
+        self.takeable = True
 
     def add_action(self, command, callback):
         if self.actions is None:
@@ -32,6 +34,11 @@ class Entity(object):
         :return:
         """
         pass
+
+    def move(self, to):
+        if self.environment:
+            self.environment.remove(self)
+        to.insert(self)
 
 
 class Action(object):
