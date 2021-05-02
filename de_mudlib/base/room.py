@@ -5,11 +5,12 @@ logger = logging.getLogger(__name__)
 
 
 def build_lookup(d):
-    lookup =  {}
+    lookup = {}
     for clear, short_list in d.items():
         for short in short_list:
             lookup[short] = clear
     return lookup
+
 
 STANDARD_DIRECTION_DEFINITIONS = {
     'norden': ['norden', 'nord', 'n'],
@@ -47,7 +48,6 @@ class Room(pyclass("/base/container")):
         whom._schau_umgebung()
         return True
 
-
     def try_command(self, supplier, command):
         cmd = command.command.lower()
         is_standard = False
@@ -76,4 +76,3 @@ class Room(pyclass("/base/container")):
             if items:
                 desc['long'] += "Du siehst hier:\n  " + "\n  ".join(items) + "\n"
         return desc
-

@@ -1,6 +1,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
+
 class Player(pyclass("/base/container")):
     kind = "cloneable"
 
